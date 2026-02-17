@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdgeNudge - Edge-first Energy Nudging</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🌱 EdgeNudge</h1>
+                <p class="tagline">Edge-first Energy Nudging for Campus Spaces</p>
+            </div>
+            <div class="header-controls">
+                <div class="status">
+                    <span class="status-badge" id="modelStatus">Loading model...</span>
+                </div>
+                <button id="autoDemoBtn" class="auto-demo-btn" style="display: none;">
+                    🎬 Auto Demo
+                </button>
+            </div>
+        </header>
+
+        <!-- Demo Banner (shown during auto-demo) -->
+        <div id="demoBanner" class="demo-banner" style="display: none;">
+            <div class="demo-banner-content">
+                <span class="demo-icon">🎬</span>
+                <span class="demo-text">Auto Demo Running</span>
+                <span class="demo-scenario" id="demoScenario">Scenario 1/4</span>
+                <button id="stopDemoBtn" class="stop-demo-btn">Stop</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Column -->
+            <div class="left-column">
+                <!-- Sensor Simulator Panel -->
+                <section class="panel sensor-panel">
+                <h2>📡 Sensor Simulator</h2>
+                <p class="panel-description">Adjust sensor inputs to simulate different room conditions</p>
+                
+                <div class="sensor-grid">
+                    <!-- Time Controls -->
+                    <div class="sensor-control">
+                        <label for="hourInput">
+                            ⏰ Hour of Day
+                            <span class="value-display" id="hourValue">12</span>
+                        </label>
+                        <input type="range" id="hourInput" min="0" max="23" value="12" class="slider">
+                        <div class="range-labels">
+                            <span>0 (Midnight)</span>
+                            <span>23 (11 PM)</span>
+                        </div>
+                    </div>
+
+                    <div class="sensor-control">
+                        <label for="dayInput">
+                            📅 Day of Week
+                            <span class="value-display" id="dayValue">Monday</span>
+                        </label>
+                        <input type="range" id="dayInput" min="0" max="6" value="0" class="slider">
+                        <div class="range-labels">
+                            <span>Mon</span>
+                            <span>Sun</span>
+                        </div>
+                    </div>
+
+                    <!-- Ambient Light -->
+                    <div class="sensor-control">
+                        <label for="lightInput">
+                            💡 Ambient Light
+                            <span class="value-display" id="lightValue">300 lux</span>
+                        </label>
+                        <input type="range" id="lightInput" min="0" max="1000" value="300" class="slider">
+                        <div class="range-labels">
+                            <span>0 (Dark)</span>
+                            <span>1000 (Bright)</span>
+                        </div>
+                    </div>
+
+                    <!-- Temperature -->
+                    <div class="sensor-control">
+                        <label for="tempInput">
+                            🌡️ Temperature
+                            <span class="value-display" id="tempValue">21.0°C</span>
+                        </label>
+                        <input type="range" id="tempInput" min="18" max="30" step="0.5" value="21" class="slider">
+                        <div class="range-labels">
+                            <span>18°C</span>
+                            <span>30°C</span>
+                        </div>
+                    </div>
+
+                    <!-- PIR Motion Sensor -->
+                    <div class="sensor-control toggle-control">
+                        <label for="pirInput">
+                            👋 PIR Motion Sensor
+                        </label>
+                        <div class="toggle-wrapper">
+                            <input type="checkbox" id="pirInput" class="toggle-input">
+                            <label for="pirInput" class="toggle-label">
+                                <span class="toggle-text off">No Motion</span>
+                                <span class="toggle-text on">Motion Detected</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Phone Presence -->
+                    <div class="sensor-control toggle-control">
+                        <label for="phoneInput">
+                            📱 Phone Presence (BLE/WiFi)
+                        </label>
+                        <div class="toggle-wrapper">
+                            <input type="checkbox" id="phoneInput" class="toggle-input">
+                            <label for="phoneInput" class="toggle-label">
+                                <span class="toggle-text off">No Phones</span>
+                                <span class="toggle-text on">Phone Detected</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preset Scenarios -->
+                <div class="presets">
+                    <h3>🎬 Quick Scenarios</h3>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" data-preset="empty">🌙 Late Night (Empty)</button>
+                        <button class="preset-btn" data-preset="morning">☀️ Morning Class</button>
+                        <button class="preset-btn" data-preset="evening">📚 Evening Study</button>
+                        <button class="preset-btn" data-preset="weekend">🏖️ Weekend Morning</button>
+                    </div>
+                </div>
+
+                <!-- Predict Button -->
+                <button id="predictBtn" class="predict-btn">
+                    🔮 Predict Occupancy
+                </button>
+            </section>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+            <!-- Prediction Results Panel -->
+            <section class="panel results-panel">
+                <h2>📊 Prediction Results</h2>
+                
+                <div id="resultsContainer" class="results-container">
+                    <div class="placeholder">
+                        <p>👆 Adjust sensors and click "Predict Occupancy" to see results</p>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div id="metricsContainer" class="metrics-container" style="display: none;">
+                    <h3>⚡ Performance Metrics</h3>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <span class="metric-label">Inference Time</span>
+                            <span class="metric-value" id="inferenceTime">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Model Size</span>
+                            <span class="metric-value" id="modelSize">--</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Execution Provider</span>
+                            <span class="metric-value" id="execProvider">--</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Energy Nudge Dashboard -->
+            <section class="panel energy-panel">
+            <h2>💡 Energy Nudge Dashboard</h2>
+            <p class="panel-description">Actionable energy-saving recommendations based on predictions</p>
+
+            <div id="energyNudgeContainer" class="energy-nudge-container">
+                <div class="placeholder">
+                    <p>🔮 Run a prediction to see energy-saving recommendations</p>
+                </div>
+            </div>
+
+            <!-- Energy Savings Summary -->
+            <div id="energySummaryContainer" class="energy-summary" style="display: none;">
+                <h3>📊 Estimated Energy Savings</h3>
+                <div class="savings-grid">
+                    <div class="savings-card">
+                        <div class="savings-icon">💡</div>
+                        <div class="savings-label">Lights</div>
+                        <div class="savings-value" id="lightsSavings">0.00 kWh</div>
+                        <div class="savings-detail">10W × hours saved</div>
+                    </div>
+                    <div class="savings-card">
+                        <div class="savings-icon">🌀</div>
+                        <div class="savings-label">Fan</div>
+                        <div class="savings-value" id="fanSavings">0.00 kWh</div>
+                        <div class="savings-detail">75W × hours saved</div>
+                    </div>
+                    <div class="savings-card">
+                        <div class="savings-icon">❄️</div>
+                        <div class="savings-label">AC</div>
+                        <div class="savings-value" id="acSavings">0.00 kWh</div>
+                        <div class="savings-detail">500W × hours saved</div>
+                    </div>
+                    <div class="savings-card total">
+                        <div class="savings-icon">⚡</div>
+                        <div class="savings-label">Total Saved</div>
+                        <div class="savings-value total-value" id="totalSavings">0.00 kWh</div>
+                        <div class="savings-detail" id="totalCost">$0.00 saved</div>
+                    </div>
+                </div>
+
+                <!-- CO2 Impact -->
+                <div class="impact-card">
+                    <h4>🌍 Environmental Impact</h4>
+                    <div class="impact-stats">
+                        <div class="impact-stat">
+                            <span class="impact-value" id="co2Saved">0.0 kg</span>
+                            <span class="impact-label">CO₂ Avoided</span>
+                        </div>
+                        <div class="impact-stat">
+                            <span class="impact-value" id="treesEquiv">0</span>
+                            <span class="impact-label">Trees Equivalent</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scale Projection -->
+                <div class="projection-card">
+                    <h4>📈 Campus-Wide Projection (100 rooms)</h4>
+                    <div class="projection-stats">
+                        <div class="projection-stat">
+                            <span class="projection-label">Monthly Savings</span>
+                            <span class="projection-value" id="monthlySavings">--</span>
+                        </div>
+                        <div class="projection-stat">
+                            <span class="projection-label">Annual Savings</span>
+                            <span class="projection-value" id="annualSavings">--</span>
+                        </div>
+                        <div class="projection-stat">
+                            <span class="projection-label">CO₂ Reduction</span>
+                            <span class="projection-value" id="annualCO2">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        </div>
+        </main>
+
+        <!-- Performance Comparison Section -->
+        <section class="panel performance-panel">
+            <h2>⚡ Performance Analysis</h2>
+            <p class="panel-description">On-device inference performance with hardware acceleration</p>
+
+            <div class="performance-grid">
+                <!-- Current Performance -->
+                <div class="perf-card current">
+                    <div class="perf-header">
+                        <h3>Current Session</h3>
+                        <span class="perf-badge" id="currentProvider">WebGPU</span>
+                    </div>
+                    <div class="perf-stats">
+                        <div class="perf-stat">
+                            <span class="perf-label">Average Latency</span>
+                            <span class="perf-value" id="avgLatency">-- ms</span>
+                        </div>
+                        <div class="perf-stat">
+                            <span class="perf-label">Total Predictions</span>
+                            <span class="perf-value" id="totalPredictions">0</span>
+                        </div>
+                        <div class="perf-stat">
+                            <span class="perf-label">Accuracy Rate</span>
+                            <span class="perf-value">99.48%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Chart -->
+                <div class="perf-card comparison">
+                    <h3>Execution Provider Comparison</h3>
+                    <div class="comparison-bars">
+                        <div class="comparison-item">
+                            <div class="comparison-label">
+                                <span class="provider-icon">🚀</span>
+                                <span>WebGPU (AMD-friendly)</span>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-bar webgpu" style="width: 20%;">
+                                    <span class="bar-label">~5-15ms</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">
+                                <span class="provider-icon">💻</span>
+                                <span>WebGL (GPU)</span>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-bar webgl" style="width: 35%;">
+                                    <span class="bar-label">~10-25ms</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comparison-item">
+                            <div class="comparison-label">
+                                <span class="provider-icon">🔧</span>
+                                <span>WebAssembly (CPU)</span>
+                            </div>
+                            <div class="comparison-bar-container">
+                                <div class="comparison-bar wasm" style="width: 70%;">
+                                    <span class="bar-label">~20-50ms</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="comparison-note">
+                        ⚡ WebGPU provides up to <strong>3x faster</strong> inference compared to CPU-only execution
+                    </p>
+                </div>
+
+                <!-- System Info -->
+                <div class="perf-card system-info">
+                    <h3>System Information</h3>
+                    <div class="info-list">
+                        <div class="info-item">
+                            <span class="info-label">Browser</span>
+                            <span class="info-value" id="browserInfo">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Platform</span>
+                            <span class="info-value" id="platformInfo">--</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">ONNX Runtime</span>
+                            <span class="info-value" id="onnxVersion">onnxruntime-web</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Model Version</span>
+                            <span class="info-value">1.0.0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Built for AMD Hackathon 2024 | 🌱 Sustainable AI & Green Tech</p>
+            <p class="footer-tech">On-device inference • Zero cloud costs • Privacy-first</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

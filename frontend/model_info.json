@@ -1,0 +1,76 @@
+{
+  "model": "DecisionTreeClassifier",
+  "version": "1.0.0",
+  "features": [
+    {
+      "name": "hour",
+      "type": "int",
+      "range": [
+        0,
+        23
+      ],
+      "description": "Hour of day"
+    },
+    {
+      "name": "day_of_week",
+      "type": "int",
+      "range": [
+        0,
+        6
+      ],
+      "description": "Day (0=Mon, 6=Sun)"
+    },
+    {
+      "name": "ambient_light",
+      "type": "float",
+      "range": [
+        0,
+        1000
+      ],
+      "description": "Light level (lux)"
+    },
+    {
+      "name": "pir_motion",
+      "type": "int",
+      "range": [
+        0,
+        1
+      ],
+      "description": "Motion detected (0/1)"
+    },
+    {
+      "name": "phone_presence",
+      "type": "int",
+      "range": [
+        0,
+        1
+      ],
+      "description": "Phone detected (0/1)"
+    },
+    {
+      "name": "temperature",
+      "type": "float",
+      "range": [
+        18,
+        30
+      ],
+      "description": "Temperature (\u00b0C)"
+    }
+  ],
+  "output": {
+    "name": "occupied",
+    "type": "int",
+    "values": [
+      0,
+      1
+    ],
+    "labels": [
+      "Empty",
+      "Occupied"
+    ]
+  },
+  "accuracy": 0.9948,
+  "model_size_kb": 2.57,
+  "tree_depth": 5,
+  "tree_leaves": 9
+}
