@@ -1760,10 +1760,12 @@ body {
     overflow-x: auto;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
+    -webkit-overflow-scrolling: touch;
 }
 
 .comparison-table {
     width: 100%;
+    min-width: 900px;
     border-collapse: collapse;
     background: white;
     table-layout: fixed;
@@ -1778,6 +1780,7 @@ body {
     padding: var(--spacing-lg);
     text-align: left;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .metric-column {
@@ -2020,4 +2023,14 @@ body {
     .cloud-column {
         width: 37.5%;
     }
+}
+
+/* CRITICAL FIX: Force table cells to display inline */
+.comparison-table tbody td {
+    display: table-cell !important;
+    white-space: normal !important;
+}
+
+.comparison-table tbody tr {
+    display: table-row !important;
 }
