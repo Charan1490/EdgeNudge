@@ -1838,7 +1838,7 @@ body {
 
 .comparison-table td {
     padding: var(--spacing-lg);
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 .metric-name {
@@ -1850,6 +1850,7 @@ body {
     display: block;
     font-size: 1rem;
     margin-bottom: var(--spacing-xs);
+    color: #1f2937;
 }
 
 .metric-desc {
@@ -1988,11 +1989,11 @@ body {
 /* Responsive comparison table */
 @media (max-width: 1024px) {
     .comparison-table-wrapper {
-        overflow-x: scroll;
+        overflow-x: auto;
     }
 
     .comparison-table {
-        min-width: 800px;
+        min-width: 900px;
     }
 }
 
@@ -2003,10 +2004,20 @@ body {
 
     .comparison-table {
         font-size: 0.9rem;
+        min-width: 800px;
     }
 
     .comparison-table th,
     .comparison-table td {
         padding: var(--spacing-md);
+    }
+
+    .metric-column {
+        width: 25%;
+    }
+
+    .edge-column,
+    .cloud-column {
+        width: 37.5%;
     }
 }
